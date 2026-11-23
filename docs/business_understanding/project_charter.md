@@ -1,26 +1,28 @@
 # Project Charter - Entendimiento del Negocio
 
-## Nombre del Proyecto
+## **Nombre del Proyecto**
 
 Predicción de la duración de viajes en taxis verdes de la Ciudad de Nueva York.
 
-## Objetivo del Proyecto
+## **Objetivo del Proyecto**
 
 El objetivo principal del presente proyecto es desarrollar un sistema de aprendizaje automático capaz de predecir con alta precisión la duración en minutos (Tiempo Estimado de Llegada - ETA) de un viaje en taxi verde (*Green Taxi / Boro Taxi*) en la ciudad de Nueva York, utilizando información disponible al momento de solicitar o iniciar el servicio (zona de origen, zona de destino, distancia estimada, franja horaria y día de la semana). 
 
 Esta predicción permite optimizar tres procesos críticos de negocio: ofrecer estimaciones confiables de llegada al pasajero, calcular tarifas dinámicas o anticipadas de manera transparente y mejorar la asignación eficiente de conductores en los distintos distritos (*boroughs*) de la ciudad. El problema se formula como una tarea de **regresión supervisada**, cuya métrica principal de evaluación será el **RMSE (Root Mean Squared Error)** y como métrica secundaria el **MAE (Mean Absolute Error)** expresados en minutos.
 
-## Alcance del Proyecto
+## **Alcance del Proyecto**
 
-- **Conjunto de datos:** Registros históricos mensuales de viajes de taxis verdes (*Green Taxi Trip Records*) publicados por la *NYC Taxi and Limousine Commission (TLC)* en formato Parquet (aproximadamente entre 50.000 y 70.000 viajes por mes para el año 2024), complementados con el catálogo oficial de zonas geográficas (`taxi_zone_lookup.csv`).
+### Incluye:
 
-- **Preprocesamiento y calidad de datos:** Filtrado de registros válidos con duraciones de viaje entre 1 y 60 minutos, eliminación de distancias nulas o atípicas y cruce con información espacial de zonas y *boroughs*.
+- Registros históricos mensuales de viajes de taxis verdes (*Green Taxi Trip Records*) publicados por la *NYC Taxi and Limousine Commission (TLC)* en formato Parquet (aproximadamente entre 50.000 y 70.000 viajes por mes para el año 2024), complementados con el catálogo oficial de zonas geográficas (`taxi_zone_lookup.csv`).
 
-- **Modelamiento y seguimiento:** Entrenamiento y comparación iterativa de modelos de regresión (iniciando con Regresión Lineal como línea base y avanzando hacia modelos basados en árboles como XGBoost o LightGBM optimizados con Optuna), registrando parámetros, métricas y artefactos en **MLflow**.
+- Filtrado de registros válidos con duraciones de viaje entre 1 y 60 minutos, eliminación de distancias nulas o atípicas y cruce con información espacial de zonas y *boroughs*.
 
-- **Versionamiento y despliegue:** Control de versiones de datos mediante **DVC**, registro del modelo ganador en el *Model Registry* de MLflow, exposición mediante una API REST construida con **FastAPI** (endpoint `/predict`) y evaluación de *data drift* mes a mes con **Evidently**.
+- Entrenamiento y comparación iterativa de modelos de regresión (iniciando con Regresión Lineal como línea base y avanzando hacia modelos basados en árboles como XGBoost o LightGBM optimizados con Optuna), registrando parámetros, métricas y artefactos en **MLflow**.
 
-- **Criterios de éxito:** Superar significativamente el desempeño de la línea base (Regresión Lineal), logrando reducir el RMSE y el MAE en minutos sobre datos futuros (evaluación temporal de marzo en adelante entrenando con enero y febrero).
+- Control de versiones de datos mediante **DVC**, registro del modelo ganador en el *Model Registry* de MLflow, exposición mediante una API REST construida con **FastAPI** (endpoint `/predict`) y evaluación de *data drift* mes a mes con **Evidently**.
+
+- Superar significativamente el desempeño de la línea base (Regresión Lineal), logrando reducir el RMSE y el MAE en minutos sobre datos futuros (evaluación temporal de marzo en adelante entrenando con enero y febrero).
 
 ### Excluye:
 
@@ -30,7 +32,7 @@ Esta predicción permite optimizar tres procesos críticos de negocio: ofrecer e
 
 - El desarrollo de una interfaz gráfica de usuario (frontend móvil o web) para pasajeros; el alcance técnico culmina en la exposición del servicio mediante API REST.
 
-## Metodología
+## **Metodología**
 
 [Descripción breve de la metodología que se utilizará para llevar a cabo el proyecto]
 
@@ -83,7 +85,6 @@ Fechas ajustadas al tiempo actual que tenemos para desarrollar cada fase del pro
 
 _Nota:_ Al ser un ejercicio académico y colaborativo proponemos un trabajo juicioso donde cada rol debe participar activamente y contribuir en la construcción integral de los productos a entregar en cada fase.
 
-## **Bibliográfia**
+## **Bibliografía**
 
 - New York City Taxi and Limousine Commission. (2026). TLC Trip Record Data [Conjunto de datos]. City of New York. Recuperado el 23 de noviembre de 2026, de https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
-
