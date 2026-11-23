@@ -34,7 +34,17 @@ Esta predicción permite optimizar tres procesos críticos de negocio: ofrecer e
 
 ## **Metodología**
 
-[Descripción breve de la metodología que se utilizará para llevar a cabo el proyecto]
+El proyecto se desarrollará siguiendo el marco metodológico estándar **CRISP-DM** adaptado a prácticas de **MLOps**:
+
+1. **Entendimiento del Negocio y Carga de Datos:** Definición de objetivos, métricas de éxito (RMSE/MAE), estructuración del repositorio bajo la plantilla TDSP/Cookiecutter, adquisición automatizada de los archivos Parquet y CSV, y versionamiento de datos con DVC.
+
+2. **Preprocesamiento y Análisis Exploratorio (EDA):** Cálculo de la variable objetivo (`duration_min`), filtrado de viajes entre 1 y 60 minutos, depuración de distancias absurdas y análisis de patrones temporales (hora, día de la semana) y espaciales (zonas de mayor demanda).
+
+3. **Ingeniería de Características y Modelamiento:** Creación de variables predictoras (`PU_DO` combinando origen y destino, indicadores de fin de semana, franjas horarias), entrenamiento de línea base y optimización de hiperparámetros con Optuna, trazando cada ejecución en MLflow.
+
+4. **Despliegue:** Promoción del mejor modelo en el *Model Registry* de MLflow y construcción de un microservicio de inferencia con FastAPI (y empaquetado en Docker).
+
+5. **Evaluación, Drift y Monitoreo:** Validación temporal fuera de muestra (entrenamiento en enero-febrero y evaluación mensual desde marzo en adelante), generando reportes de degradación y *data drift* con Evidently para establecer políticas de reentrenamiento.
 
 ## **Cronograma**
 
