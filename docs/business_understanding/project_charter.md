@@ -14,15 +14,15 @@ Evaluar el desempeño de una red neuronal en la predicción de la duración de v
 
 ## Alcance
 
-### Entregables del mes
+### Entregables
 
-- Un conjunto de datos reproducible a partir de los archivos Parquet de taxis verdes de enero, febrero y marzo de 2024 y del catálogo oficial de zonas `taxi_zone_lookup.csv`.
+- Un conjunto de datos reproducible a partir de los archivos Parquet de taxis verdes de enero a junio de 2024 (abril a junio se usarán para el monitoreo de drift), versionado con DVC, y del catálogo oficial de zonas `taxi_zone_lookup.csv`.
 - Dos modelos de regresión con las mismas variables de entrada. La línea base será una regresión lineal con codificación *one-hot* de las zonas. El modelo de Deep Learning será un perceptrón multicapa (MLP) que aprenderá una representación vectorial (*embedding*) para las zonas de origen y destino.
-- Un registro de experimentos en MLflow, un informe de evaluación y una demostración local que reciba las dos zonas y la fecha y hora de salida, y devuelva la duración estimada en minutos.
+- Un registro de experimentos en MLflow, el modelo ganador registrado en el Model Registry, una API con FastAPI (POST /predict) que reciba las dos zonas y la fecha y hora de salida y devuelva la duración estimada en minutos, y un informe de evaluación.
 
 ### Ampliaciones
 
-XGBoost será la primera comparación adicional si el cronograma lo permite. También se podrá repetir la evaluación de abril a diciembre de 2024. La incorporación de Optuna, DVC, el registro de modelos de MLflow, FastAPI (`POST /predict`), Docker y Evidently dependerá de los requisitos de la asignatura y del tiempo disponible.
+XGBoost será la primera comparación adicional si el cronograma lo permite. También se podrá extender la evaluación hasta diciembre de 2024 e incorporar Optuna y Docker.
 
 ### Fuera de alcance
 
