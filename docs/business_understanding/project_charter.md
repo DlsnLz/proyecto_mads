@@ -22,7 +22,7 @@ Evaluar el desempeño de una red neuronal en la predicción de la duración de v
 
 ### Ampliaciones
 
-XGBoost será la primera comparación adicional si el cronograma lo permite. También se podrá extender la evaluación hasta diciembre de 2024 e incorporar Optuna y Docker.
+XGBoost será la primera comparación adicional si el cronograma lo permite. También se podrá extender la evaluación hasta diciembre de 2024 e incorporar Optuna.
 
 ### Fuera de alcance
 
