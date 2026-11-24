@@ -1,100 +1,87 @@
-# Project Charter - Entendimiento del Negocio
+# Project Charter – Entendimiento del negocio
 
-## **Nombre del Proyecto**
+## Nombre del proyecto
 
-Predicción de la duración de viajes en taxis verdes de la Ciudad de Nueva York.
+Predicción de la duración de viajes en taxis verdes de Nueva York mediante una red neuronal.
 
-## **Objetivo del Proyecto**
+## Problema de negocio
 
-El objetivo principal del presente proyecto es desarrollar un sistema de aprendizaje automático capaz de predecir con alta precisión la duración en minutos (Tiempo Estimado de Llegada - ETA) de un viaje en taxi verde (*Green Taxi / Boro Taxi*) en la ciudad de Nueva York, utilizando información disponible al momento de solicitar o iniciar el servicio (zona de origen, zona de destino, distancia estimada del trayecto (en producción se obtendría de un servicio de rutas, ya que trip_distance se registra al finalizar el viaje), franja horaria y día de la semana). 
+Cuando un pasajero aborda un taxi verde e indica su destino, quiere saber cuánto tardará en llegar. El proyecto estimará la duración del trayecto en minutos a partir de las zonas de origen y destino, la hora de salida y el día de la semana. Al sumar la duración estimada a la hora de salida se obtiene la hora estimada de llegada (ETA).
 
-Esta predicción permite optimizar tres procesos críticos de negocio: ofrecer estimaciones confiables de llegada al pasajero, calcular tarifas dinámicas o anticipadas de manera transparente y mejorar la asignación eficiente de conductores en los distintos distritos (*boroughs*) de la ciudad. El problema se formula como una tarea de **regresión supervisada**, cuya métrica principal de evaluación será el **RMSE (Root Mean Squared Error)** y como métrica secundaria el **MAE (Mean Absolute Error)** expresados en minutos.
+## Objetivo general
 
-## **Alcance del Proyecto**
+Evaluar el desempeño de una red neuronal en la predicción de la duración de viajes en taxis verdes de Nueva York al inicio del servicio, mediante una comparación con regresión lineal sobre viajes de un mes posterior al entrenamiento.
 
-### Incluye:
+## Alcance
 
-- Registros históricos mensuales de viajes de taxis verdes (*Green Taxi Trip Records*) publicados por la *NYC Taxi and Limousine Commission (TLC)* en formato Parquet (aproximadamente entre 50.000 y 70.000 viajes por mes para el año 2024), complementados con el catálogo oficial de zonas geográficas (`taxi_zone_lookup.csv`).
+### Entregables del mes
 
-- Filtrado de registros válidos con duraciones de viaje entre 1 y 60 minutos, eliminación de distancias nulas o atípicas y cruce con información espacial de zonas y *boroughs*, excluyendo zonas sin ubicación definida (Unknown / Outside of NYC).
+- Un conjunto de datos reproducible a partir de los archivos Parquet de taxis verdes de enero, febrero y marzo de 2024 y del catálogo oficial de zonas `taxi_zone_lookup.csv`.
+- Dos modelos de regresión con las mismas variables de entrada. La línea base será una regresión lineal con codificación *one-hot* de las zonas. El modelo de Deep Learning será un perceptrón multicapa (MLP) que aprenderá una representación vectorial (*embedding*) para las zonas de origen y destino.
+- Un registro de experimentos en MLflow, un informe de evaluación y una demostración local que reciba las dos zonas y la fecha y hora de salida, y devuelva la duración estimada en minutos.
 
-- Entrenamiento y comparación iterativa de modelos de regresión (iniciando con Regresión Lineal como línea base y avanzando hacia modelos basados en árboles como XGBoost o LightGBM optimizados con Optuna), registrando parámetros, métricas y artefactos en **MLflow**.
+### Ampliaciones
 
-- Control de versiones de datos mediante **DVC**, registro del modelo ganador en el *Model Registry* de MLflow, exposición mediante una API REST construida con **FastAPI** (endpoint `/predict`) y evaluación de *data drift* mes a mes con **Evidently**.
+XGBoost será la primera comparación adicional si el cronograma lo permite. También se podrá repetir la evaluación de abril a diciembre de 2024. La incorporación de Optuna, DVC, el registro de modelos de MLflow, FastAPI (`POST /predict`), Docker y Evidently dependerá de los requisitos de la asignatura y del tiempo disponible.
 
-- Superar el desempeño de la línea base (Regresión Lineal), con una reducción de al menos 15 % en el RMSE sobre datos futuros (entrenamiento con enero, validación con febrero para Optuna y evaluación mensual de marzo a diciembre de 2024).
+### Fuera de alcance
 
-### Excluye:
+Se excluyen los taxis amarillos y otros servicios de transporte, la espera previa al abordaje, la integración de tráfico o clima en tiempo real, el cálculo de tarifas, la asignación de conductores y el desarrollo de una interfaz gráfica.
 
-- El análisis y modelamiento de registros correspondientes a taxis amarillos (*Yellow Taxis*), vehículos de alquiler de alto volumen (*FHVHV* como Uber/Lyft) u otros medios de transporte público.
+## Metodología
 
-- La integración con fuentes externas en tiempo real no contenidas en los datos históricos de la TLC (como reportes climáticos en vivo o incidentes de tráfico en tiempo real vía GPS).
+Se seguirá CRISP-DM con un registro reproducible de los experimentos.
 
-- El desarrollo de una interfaz gráfica de usuario (frontend móvil o web) para pasajeros; el alcance técnico culmina en la exposición del servicio mediante API REST.
+1. **Comprensión y preparación de los datos.** Se calculará `duration_min` como la diferencia en minutos entre `lpep_dropoff_datetime` y `lpep_pickup_datetime`. Se documentarán los registros incompletos y las duraciones no positivas. Los viajes de más de 60 minutos se revisarán antes de fijar un límite. Las reglas de depuración se definirán con enero y se aplicarán por igual a los meses siguientes.
+2. **Variables disponibles al abordar.** Se utilizarán la zona de origen (`PULocationID`), la zona de destino, la hora y el día de la semana. La TLC registra en `DOLocationID` la zona donde terminó el viaje. Para el experimento se asumirá que coincide con el destino indicado por el pasajero al abordar. Se excluirá de las entradas `trip_distance` porque el taxímetro registra la distancia efectivamente recorrida.
+3. **Entrenamiento y validación temporal.** Se entrenarán ambos modelos con enero de 2024 y se usará febrero para elegir sus configuraciones. Una vez fijadas, se reentrenarán ambos modelos con enero y febrero y se evaluarán sobre los mismos viajes de marzo. MLflow registrará los parámetros, las métricas y los modelos obtenidos.
 
-## **Metodología**
+## Criterios de evaluación
 
-El proyecto se desarrollará siguiendo el marco metodológico estándar **CRISP-DM** adaptado a prácticas de **MLOps**:
+- **RMSE en minutos.** Será la métrica principal. Se calculará la reducción porcentual del RMSE de la red frente a la regresión lineal. Un valor negativo indicará que la línea base obtuvo menor error.
+- **MAE en minutos.** Mostrará cuántos minutos se desvía, en promedio, una predicción de la duración real, tomando el valor absoluto de cada error.
+- **Porcentaje de viajes con error absoluto de hasta cinco minutos.** Indicará con qué frecuencia la estimación queda dentro de ese margen para el pasajero.
 
-1. **Entendimiento del Negocio y Carga de Datos:** Definición de objetivos, métricas de éxito (RMSE/MAE), estructuración del repositorio bajo la plantilla TDSP/Cookiecutter, adquisición automatizada de los archivos Parquet y CSV, y versionamiento de datos con DVC.
+El informe comparará ambos modelos en marzo e identificará en qué rutas se concentran los errores, indicando cuántos viajes respaldan cada comparación. La conclusión se basará en los resultados observados, incluso si la regresión lineal obtiene el menor RMSE.
 
-2. **Preprocesamiento y Análisis Exploratorio (EDA):** Cálculo de la variable objetivo (`duration_min`), filtrado de viajes entre 1 y 60 minutos, depuración de distancias absurdas y análisis de patrones temporales (hora, día de la semana) y espaciales (zonas de mayor demanda).
+## Cronograma
 
-3. **Ingeniería de Características y Modelamiento:** Creación de variables predictoras (`PU_DO` combinando origen y destino, indicadores de fin de semana, franjas horarias), entrenamiento de línea base y optimización de hiperparámetros con Optuna, trazando cada ejecución en MLflow.
+| Fechas de 2026 | Actividad y resultado esperado |
+|---|---|
+| 23–29 de noviembre | Preparar los datos, documentar los filtros y obtener las primeras métricas de la regresión lineal en febrero. |
+| 30 de noviembre–6 de diciembre | Entrenar la red con *embeddings* y comparar ambos modelos en febrero. |
+| 7–13 de diciembre | Cerrar las configuraciones, reentrenar con enero y febrero, evaluar en marzo y analizar los errores. |
+| 14–19 de diciembre | Completar la demostración, el informe reproducible y la sustentación. |
 
-4. **Despliegue:** Promoción del mejor modelo en el *Model Registry* de MLflow y construcción de un microservicio de inferencia con FastAPI (y empaquetado en Docker).
+## Equipo del proyecto
 
-5. **Evaluación, Drift y Monitoreo:** Validación temporal fuera de muestra (entrenamiento en enero, validación en febrero y evaluación mensual de marzo a diciembre de 2024), generando reportes de degradación y *data drift* con Evidently para establecer políticas de reentrenamiento.
+| Integrante | Formación |
+|---|---|
+| Dilson Lazaro Ospino | Estadístico e ingeniero de sistemas |
+| Daniel Esteban Molina Sánchez | Ingeniero de ciencias computacionales |
+| Sebastian Paez Rojas | Ingeniero químico |
 
-## **Cronograma**
+## Presupuesto estimado
 
-| Etapa | Duración Estimada | Fechas |
-|------|---------|-------|
-| Entendimiento del negocio y carga de datos | 11 días | del 16 de noviembre al 26 de noviembre |
-| Preprocesamiento, análisis exploratorio | 11 días | del 23 de noviembre al 03 de diciembre |
-| Modelamiento y extracción de características | 11 días | del 30 de noviembre al 10 de diciembre |
-| Despliegue | 11 días | del 07 de diciembre al 17 de diciembre |
-| Evaluación y entrega final | 6 días | del 14 de diciembre al 19 de diciembre |
+| Concepto | Costo estimado (USD) |
+|---|---:|
+| Dedicación a ciencia de datos y modelamiento | 2.500 |
+| Dedicación a ingeniería de datos y MLOps | 2.500 |
+| Cómputo, almacenamiento y licencias con los recursos disponibles | 0 |
+| Contingencia del 10 % sobre el valor del trabajo | 500 |
+| **Total estimado** | **5.500** |
 
-Fechas ajustadas al tiempo actual que tenemos para desarrollar cada fase del proyecto y en la última semana propuesta la entrega consolidada del proyecto final de aula.
+Los USD 5.000 de personal representan el valor estimado del trabajo académico del equipo. Los USD 500 restantes corresponden a una reserva para imprevistos.
 
-## **Equipo del Proyecto**
+## Partes interesadas
 
-- Dilson Lazaro Ospino [Estadístico e Ing. de Sistemas]
-- Daniel Esteban Molina Sánchez [Ingeniero de Ciencias Computacionales]
-- Sebastian Paez Rojas [Ingeniero Químico]
+- **Pasajeros de taxis verdes.** Son los usuarios de referencia para la estimación de la duración al abordar.
+- **Operadores de flotas.** Son usuarios potenciales de la estimación para informar a sus pasajeros.
+- **Equipo del proyecto y docente de la asignatura.** Desarrollan y evalúan, respectivamente, la metodología, la reproducibilidad y los resultados.
 
-## **Presupuesto**
 
-| Categoría de Gasto | Descripción | Costo Estimado (USD) | Notas / Consideraciones |
-| :----------------- | :---------- | :------------------- | :---------------------- |
-| **I. Personal** | | | |
-| Científico de Datos | Formulación del problema, EDA, ingeniería de variables y modelado. | $2,500 | Dedicación parcial durante 5 semanas |
-| Ingeniero de Datos / MLOps | Configuración de DVC, MLflow, FastAPI, Docker y monitoreo con Evidently. | $2,500 | Dedicación parcial durante 5 semanas |
-| **II. Infraestructura y Software** | | | |
-| Cómputo Cloud / Local | Entorno de ejecución (Google Colab / CPU local). | $0 | El volumen mensual (~60k filas) permite entrenar en CPU sin costo de GPU |
-| Almacenamiento Remoto | Repositorio GitHub y almacenamiento DVC en Google Drive. | $0 | Uso de capas gratuitas institucionales/personales |
-| Licencias de Software | Python, Pandas, Scikit-learn, XGBoost, MLflow, DVC, FastAPI, Evidently. | $0 | Ecosistema 100% Open-Source |
-| **III. Misceláneos** | | | |
-| Contingencias | Buffer para imprevistos técnicos (10%). | $500 | Reserva operativa |
-| **TOTAL ESTIMADO DEL PROYECTO** | | **$5,500** | |
+## Bibliografía
 
-## **Stakeholders**
-
-- **Operadores de flota y TLC:** Interesados en mejorar la asignación de vehículos según la duración esperada de los trayectos en los *boroughs* exteriores (Brooklyn, Queens, Bronx, Staten Island y norte de Manhattan).
-
-- **Pasajeros:** Beneficiarios finales que requieren estimaciones precisas de tiempo de llegada (ETA) y tarifas predecibles antes de abordar.
-
-- **Equipo docente:** Responsables de auditar la reproducibilidad del código, el versionamiento de datos/modelos y la calidad de las métricas de desempeño.
-
-## **Aprobaciones**
-
-- Dilson Lazaro Ospino
-- Daniel Esteban Molina Sánchez
-- Sebastian Paez Rojas
-
-_Nota:_ Al ser un ejercicio académico y colaborativo proponemos un trabajo juicioso donde cada rol debe participar activamente y contribuir en la construcción integral de los productos a entregar en cada fase.
-
-## **Bibliografía**
-
-- New York City Taxi and Limousine Commission. (2026). TLC Trip Record Data [Conjunto de datos]. City of New York. Recuperado el 23 de noviembre de 2026, de https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
+- New York City Taxi and Limousine Commission. (s. f.). *TLC trip record data* [Conjunto de datos]. City of New York. [Portal oficial de datos y catálogo de zonas](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page).
+- New York City Taxi and Limousine Commission. (2025, 18 de marzo). *Data dictionary – LPEP trip records*. [Diccionario oficial de taxis verdes](https://www.nyc.gov/assets/tlc/downloads/pdf/data_dictionary_trip_records_green.pdf).
+- Gorishniy, Y., Rubachev, I., Khrulkov, V., & Babenko, A. (2021). Revisiting deep learning models for tabular data. *Advances in Neural Information Processing Systems, 34*. [Artículo en NeurIPS](https://proceedings.neurips.cc/paper_files/paper/2021/hash/9d86d83f925f2149e9edb0ac3b49229c-Abstract.html).
