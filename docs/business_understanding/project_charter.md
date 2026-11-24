@@ -79,6 +79,9 @@ Los USD 5.000 de personal representan el valor estimado del trabajo académico d
 - **Operadores de flotas.** Son usuarios potenciales de la estimación para informar a sus pasajeros.
 - **Equipo del proyecto y docente de la asignatura.** Desarrollan y evalúan, respectivamente, la metodología, la reproducibilidad y los resultados.
 
+## Aprobaciones
+
+ - Dilson Lazaro Ospino (DlsnLz)
 
 ## Bibliografía
 
