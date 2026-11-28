@@ -1,0 +1,5 @@
+outs:
+- md5: 54b0348f322342357879eedcf6574308
+  size: 2068112
+  hash: md5
+  path: green_trips_2024_h1_clean.parquet
